@@ -11,7 +11,7 @@ import {
   type Activity,
 } from "eve/events";
 import { useEveAgent } from "eve/react";
-import { AlertCircleIcon, BrainIcon, PlusIcon, SquareIcon } from "lucide-react";
+import { AlertCircleIcon, BrainIcon, FileTextIcon, PlusIcon, SquareIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import {
   Conversation,
@@ -34,7 +34,7 @@ import { cn } from "@/lib/utils";
 import { AgentMessage } from "./agent-message";
 import { WEB_CHAT_AGENT } from "@/app/eve-agent";
 
-const DEFAULT_AGENT_NAME = "eve-agent";
+const DEFAULT_AGENT_NAME = "Acharya Lab";
 const AGENT_NAME = WEB_CHAT_AGENT ?? DEFAULT_AGENT_NAME;
 
 export function AgentChat({
@@ -286,6 +286,12 @@ function ChatHeader({ canStartNewChat }: { readonly canStartNewChat: boolean }) 
   return (
     <header className="pointer-events-none fixed top-0 right-0 left-0 z-20 h-14">
       <div className="relative mx-auto flex h-full w-full max-w-3xl items-center justify-center bg-background px-24">
+        <Button asChild className="pointer-events-auto fixed top-3 left-6" size="sm" variant="ghost">
+          <a aria-label="Open the lab report" href="/report">
+            <FileTextIcon className="size-4" />
+            <span className="hidden font-normal text-sm sm:inline">Report</span>
+          </a>
+        </Button>
         <span className="truncate text-muted-foreground text-sm">{AGENT_NAME}</span>
         {canStartNewChat ? (
           <Button
