@@ -1,0 +1,18 @@
+# secrets
+.env
+.env.local
+.env*.local
+.env*.txt
+# dependencies and build output
+node_modules/
+.eve/
+.output/
+.next/
+.vercel/
+.workflow-data/
+*.tsbuildinfo
+# lab data written by the mock store and lab scripts
+lab-data/*.json
+
+.vercel
+.env*

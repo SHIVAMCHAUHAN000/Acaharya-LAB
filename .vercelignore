@@ -1,0 +1,11 @@
+# never upload secrets or local data to Vercel
+.env
+.env.*
+.env*.txt
+node_modules
+.eve
+.output
+.next
+apps/web/.next
+.workflow-data
+lab-data/*.json
