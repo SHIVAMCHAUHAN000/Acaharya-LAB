@@ -225,6 +225,17 @@ export function AgentChat({
         {showConversationLayout ? null : (
           <div className="flex flex-col items-center gap-3 text-center">
             <h1 className="font-medium text-5xl tracking-tighter">{AGENT_NAME}</h1>
+            <p className="text-muted-foreground text-sm">
+              R&amp;D test agent with mock data.{" "}
+              <a
+                aria-label="Open the lab report"
+                className="inline-flex items-center gap-1 text-foreground underline underline-offset-4"
+                href="/report"
+              >
+                <FileTextIcon className="size-3.5" />
+                Read the lab report
+              </a>
+            </p>
           </div>
         )}
         <div className="w-full">{composer}</div>
