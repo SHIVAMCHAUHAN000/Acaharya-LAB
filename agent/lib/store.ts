@@ -18,9 +18,9 @@ export type Task = {
 
 type Doc = { content: string; version: string | null } | null;
 type Storage = {
-  read(key: "tasks" | "config"): Promise<Doc>;
+  read(key: string): Promise<Doc>;
   // Writes only if the stored version still equals `version` (null = must not exist yet).
-  write(key: "tasks" | "config", content: string, version: string | null): Promise<void>;
+  write(key: string, content: string, version: string | null): Promise<void>;
 };
 
 function blobStorage(): Storage | null {
@@ -65,31 +65,37 @@ export async function titleMax(): Promise<number> {
   } catch { return TASK_TITLE_MAX; }
 }
 
-async function readTasks(): Promise<{ tasks: Task[]; version: string | null }> {
-  const doc = await store().read("tasks");
+// "main" = the shared demo tasks. "eval" = a separate scratch list used by the gardener's test runs.
+export type TaskSpace = "main" | "eval";
+const tasksKey = (space: TaskSpace) => (space === "eval" ? "eval-tasks" : "tasks");
+
+async function readTasks(space: TaskSpace = "main"): Promise<{ tasks: Task[]; version: string | null }> {
+  const doc = await store().read(tasksKey(space));
   if (!doc) return { tasks: [], version: null };
   try { return { tasks: JSON.parse(doc.content), version: doc.version }; } catch { return { tasks: [], version: doc.version }; }
 }
 
-export async function loadTasks(): Promise<Task[]> {
-  try { return (await readTasks()).tasks; } catch { return []; }
+export async function loadTasks(space: TaskSpace = "main"): Promise<Task[]> {
+  try { return (await readTasks(space)).tasks; } catch { return []; }
 }
-export async function saveTasks(tasks: Task[]) {
-  const { version } = await readTasks();
-  await store().write("tasks", JSON.stringify(tasks, null, 2), version);
+export async function saveTasks(tasks: Task[], space: TaskSpace = "main") {
+  const { version } = await readTasks(space);
+  await store().write(tasksKey(space), JSON.stringify(tasks, null, 2), version);
 }
+/** Empties the gardener's scratch task list before a test batch. */
+export const resetEvalTasks = () => saveTasks([], "eval");
 
 // Parallel tool calls must not overwrite each other: run read-modify-write one at a time.
 // The queue covers one server instance; the Blob version check (ifMatch) covers several
 // instances, retrying the whole read-modify-write when another instance wrote first.
 let queue: Promise<unknown> = Promise.resolve();
-export function withTasks<T>(fn: (tasks: Task[]) => Promise<T> | T): Promise<T> {
+export function withTasks<T>(fn: (tasks: Task[]) => Promise<T> | T, space: TaskSpace = "main"): Promise<T> {
   const run = queue.then(async () => {
     for (let attempt = 1; ; attempt++) {
-      const { tasks, version } = await readTasks();
+      const { tasks, version } = await readTasks(space);
       const result = await fn(tasks);
       try {
-        await store().write("tasks", JSON.stringify(tasks, null, 2), version);
+        await store().write(tasksKey(space), JSON.stringify(tasks, null, 2), version);
         return result;
       } catch (error) {
         if (!MemoryDocumentConflictError.is(error) || attempt >= 5) throw error;
@@ -98,4 +104,9 @@ export function withTasks<T>(fn: (tasks: Task[]) => Promise<T> | T): Promise<T> 
   });
   queue = run.catch(() => undefined);
   return run;
+}
+
+/** Which task list a tool call should use: gardener test runs get their own scratch list. */
+export function taskSpace(ctx: { session: { auth: { current?: { attributes?: Record<string, unknown> } | null } } }): TaskSpace {
+  return ctx.session.auth.current?.attributes?.mode === "eval" ? "eval" : "main";
 }

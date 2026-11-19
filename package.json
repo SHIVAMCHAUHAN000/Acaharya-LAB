@@ -12,7 +12,10 @@
     "info": "eve info",
     "test:lab": "node scripts/run-lab.mjs",
     "dev:web": "next dev apps/web",
-    "build:web": "next build apps/web"
+    "build:web": "next build apps/web",
+    "garden": "npx -y tsx --env-file=.env.local scripts/garden.ts",
+    "skills": "npx -y tsx --env-file=.env.local scripts/skills.ts",
+    "test:day": "node scripts/day-test.mjs"
   },
   "dependencies": {
     "@shadcn/react": "^0.3.1",

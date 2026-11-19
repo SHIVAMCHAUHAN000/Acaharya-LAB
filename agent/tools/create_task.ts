@@ -11,8 +11,8 @@ export default defineTool({
     description: z.string().optional(),
     site: z.string().optional(),
   }),
-  async execute({ title, assignee, due_date, description, site }) {
-    const { withTasks, KARIGARS, titleMax } = await import("../lib/store");
+  async execute({ title, assignee, due_date, description, site }, ctx) {
+    const { withTasks, KARIGARS, titleMax, taskSpace } = await import("../lib/store");
     const TASK_TITLE_MAX = await titleMax();
     const t = title.trim();
     if (t.length > TASK_TITLE_MAX) {
@@ -35,6 +35,6 @@ export default defineTool({
         description: description ?? null, site, status: "planned" as const };
       tasks.push(task);
       return { ok: true, task };
-    });
+    }, taskSpace(ctx));
   },
 });
